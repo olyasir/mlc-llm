@@ -1,0 +1,37 @@
+name: Run in Docker Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      quantization:
+        description: "Choose quantization for model"
+        required: true
+        default: "q0f32"
+        type: choice
+        options:
+          - q0f32
+          - q4f16
+
+jobs:
+  run-in-container:
+    runs-on: ubuntu-latest
+    container:
+      image: olyasir/models_build:ubuntu22.04_vulkan
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Run a command in the container
+        run: |
+          echo "Running inside Docker container from Docker Hub"
+          python --version
+          vulkaninfo
+          pwd 
+      - name: Create build directory
+        run: mkdir build && cd build && ls ../cmake && cp ../cmake/config.cmake . && cmake ..
+
+      - name: Build the project
+        run: |
+           cmake --build . --parallel ${nproc}
+

@@ -26,5 +26,6 @@ from . import (
     stablelm,
     tinyllama,
     wizardlm,
+    marian,
 )
 from .registry import ConvTemplateRegistry
