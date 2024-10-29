@@ -22,6 +22,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      - name: Mark repository as safe
+        run: |
+          git config --global --add safe.directory /__w/mlc-llm/mlc-llm
+
       - name: get submodules
         run: |
             git submodule update --init --recursive
