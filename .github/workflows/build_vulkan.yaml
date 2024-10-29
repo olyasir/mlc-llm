@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Only fetch the latest commit
 
       - name: Install Rust manually
         run: |
@@ -38,6 +40,10 @@ jobs:
       - name: get submodules
         run: |
             git submodule update --init --recursive
+
+      - name: remove tvm
+        run: |
+            rm -rf 3rdparty/tvm
 
       - name: Run a command in the container
         run: |
