@@ -31,7 +31,7 @@ jobs:
 
       - name: Download model
         run: curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh |  bash && \
-             sudo apt-get install git-lfs && \
+             apt-get install git-lfs && \
              git-lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
 
       - name: Create build directory
