@@ -28,6 +28,7 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH  # Add Rust to the PATH for GitHub Actions
 
       - name: Source Rust environment
+        shell: bash
         run: source $HOME/.cargo/env && rustup --version && cargo --version
 
       - name: Mark repository as safe
@@ -52,11 +53,13 @@ jobs:
         run: git-lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
 
       - name: Create build directory
+        shell: bash
         run: mkdir build && cd build && cp ../cmake/config.cmake . && cmake ..
 
       - name: Build the project
+        shell: bash
         run: |
-           cd build && cmake --build . 
+           source $HOME/.cargo/env && cd build && cmake --build . 
 
       - name: Install mlc-llm
         run: |
