@@ -25,7 +25,7 @@ jobs:
       - name: Install Rust manually
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          echo "source $HOME/.cargo/env" >> $GITHUB_ENV  # Add Rust to the GitHub Actions environment
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH  # Add Rust to the PATH for GitHub Actions
 
       - name: Source Rust environment
         run: source $HOME/.cargo/env && rustup --version && cargo --version
