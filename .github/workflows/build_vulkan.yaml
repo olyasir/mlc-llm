@@ -73,13 +73,14 @@ jobs:
         run: |
            source $HOME/.cargo/env && cd build && cmake --build . 
     
-      # - name: check space
-      #   shell: bash
-      #   run: du -h / | sort -h | tail -n 10 && \ 
-      #        df -h
+   
 
       - name: cleanup 
         run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm /tvm
+
+      - name: check space
+        shell: bash
+        run: du -h / | sort -h | tail -n 10
 
       - name: Install mlc-llm
         run: |
