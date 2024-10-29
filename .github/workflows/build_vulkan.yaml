@@ -28,9 +28,11 @@ jobs:
           python --version
           vulkaninfo
           pwd 
-          
+
       - name: Doownload model
-        run: git lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
+        run: curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash && \
+             apt-get install git-lfs && \
+             git-lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
 
       - name: Create build directory
         run: mkdir build && cd build && cp ../cmake/config.cmake . && cmake ..
