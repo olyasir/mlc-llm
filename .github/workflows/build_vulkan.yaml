@@ -38,7 +38,7 @@ jobs:
           cargo --version
           pwd 
 
-     - name: Run a command in the container
+      - name: Run a command in the container
         run: |
           rustup install stable && \
           rustup default stable
