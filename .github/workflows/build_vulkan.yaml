@@ -63,6 +63,10 @@ jobs:
         shell: bash
         run: |
            source $HOME/.cargo/env && cd build && cmake --build . 
+    
+      - name: check space
+        shell: bash
+        run: du -h /home/ubuntu | sort -h | tail -n 10
 
       - name: cleanup 
         run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm
