@@ -24,6 +24,11 @@ jobs:
         with:
           fetch-depth: 1  # Only fetch the latest commit
 
+      - name: check space 1
+        shell: bash
+        run: du -h / | sort -h | tail -n 10 && \ 
+             df -h
+
       - name: Install Rust manually
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -66,7 +71,8 @@ jobs:
     
       - name: check space
         shell: bash
-        run: du -h /home/ubuntu | sort -h | tail -n 10
+        run: du -h / | sort -h | tail -n 10 && \ 
+             df -h
 
       - name: cleanup 
         run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm
