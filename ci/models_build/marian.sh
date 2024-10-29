@@ -1,0 +1,3 @@
+mlc_llm convert_weight --model-type marian ./opus-mt-en-it/ --quantization q0f32 --output ./output-q0f32-opus-mt-en-it
+mlc_llm gen_config --model-type marian ./opus-mt-en-it --quantization q0f32 --conv-template marian --output ./output-q0f32-opus-mt-en-it
+mlc_llm compile --model-type marian ./output-q0f32-opus-mt-en-it/ --quantization q0f32 --device vulkan --output ./output-q0f32-opus-mt-en-it/opus-mt-en-it.so

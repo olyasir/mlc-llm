@@ -29,9 +29,23 @@ jobs:
           vulkaninfo
           pwd 
       - name: Create build directory
-        run: mkdir build && cd build && ls ../cmake && cp ../cmake/config.cmake . && cmake ..
+        run: mkdir build && cd build && cp ../cmake/config.cmake . && cmake ..
 
       - name: Build the project
         run: |
-           cmake --build . --parallel ${nproc}
+           cd build && cmake --build . 
 
+      - name: Install mlc-llm
+        run: |
+           cd python && pip install -e .
+
+      - name: Compile model
+        run: |
+            ./ci/models_build/marian.sh
+
+      - name: Upload compied model as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: output-q0f32-opus-mt-en-it
+          path: output-q0f32-opus-mt-en-it/
+            
