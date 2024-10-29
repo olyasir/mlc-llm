@@ -22,6 +22,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      - name: get submodules
+        run: |
+            git submodule update --init --recursive
+
       - name: Run a command in the container
         run: |
           echo "Verifying vulkan instalation "
