@@ -22,11 +22,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable  # You can specify other toolchains like 'nightly' if needed
-          override: true
+      - name: Install Rust manually
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "source $HOME/.cargo/env" >> $GITHUB_ENV  # Add Rust to the GitHub Actions environment
+
+      - name: Source Rust environment
+        run: source $HOME/.cargo/env && rustup --version && cargo --version
 
       - name: Mark repository as safe
         run: |
@@ -43,9 +45,9 @@ jobs:
           vulkaninfo
           cargo --version
           pwd 
+          rustup --version
 
     
-
       - name: Download model
         run: git-lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
 
