@@ -1,4 +1,4 @@
-name: Run in Docker Container
+name: Compile Marian model
 
 on:
   workflow_dispatch:
@@ -24,14 +24,14 @@ jobs:
 
       - name: Run a command in the container
         run: |
-          echo "Running inside Docker container from Docker Hub"
+          echo "Verifying vulkan instalation "
           python --version
           vulkaninfo
           pwd 
 
-      - name: Doownload model
-        run: curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash && \
-             apt-get install git-lfs && \
+      - name: Download model
+        run: curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh |  bash && \
+             sudo apt-get install git-lfs && \
              git-lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
 
       - name: Create build directory
