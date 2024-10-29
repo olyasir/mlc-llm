@@ -41,9 +41,6 @@ jobs:
         run: |
             git submodule update --init --recursive
 
-      - name: remove tvm
-        run: |
-            rm -rf 3rdparty/tvm
 
       - name: Run a command in the container
         run: |
@@ -66,6 +63,9 @@ jobs:
         shell: bash
         run: |
            source $HOME/.cargo/env && cd build && cmake --build . 
+
+      - name: cleanup 
+        run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm
 
       - name: Install mlc-llm
         run: |
