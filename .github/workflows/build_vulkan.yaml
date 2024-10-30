@@ -74,7 +74,7 @@ jobs:
            source $HOME/.cargo/env && cd build && cmake --build . 
 
       - name: cleanup 
-        run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm /tvm  /__t/CodeQL
+        run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm  /__t/CodeQL
 
       # - name: check space
       #   shell: bash
