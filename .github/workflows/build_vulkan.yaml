@@ -10,7 +10,7 @@ on:
         type: choice
         options:
           - q0f32
-          - q4f16
+          - q4f32_1
 
 jobs:
   run-in-container:
@@ -23,15 +23,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 1  # Only fetch the latest commit
-
-      # - name: check space 1
-      #   shell: bash
-      #   run: du -h / | sort -h | tail -n 10 && \ 
-      #        df -h
-
-      # - name: check space 2
-      #   shell: bash
-      #   run: df -h
 
       - name: Install Rust manually
         run: |
@@ -73,12 +64,8 @@ jobs:
         run: |
            source $HOME/.cargo/env && cd build && cmake --build . 
 
-      - name: cleanup 
+      - name: cleanup #needed as there is only 15G on runner, not enough for mlc-llm instalation
         run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm  /__t/CodeQL
-
-      # - name: check space
-      #   shell: bash
-      #   run: du -h / | sort -h | tail -n 10
 
       - name: Install mlc-llm
         run: |
@@ -86,11 +73,11 @@ jobs:
 
       - name: Compile model
         run: |
-            ./ci/models_build/marian.sh
+            ./ci/models_build/marian.sh "${{ github.event.inputs.quantization }}"
 
       - name: Upload compied model as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: output-q0f32-opus-mt-en-it
-          path: output-q0f32-opus-mt-en-it/
+          name: output-${{ github.event.inputs.example_input }}-opus-mt-en-it
+          path: output-${{ github.event.inputs.example_input }}-opus-mt-en-it/
             
