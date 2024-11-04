@@ -11,12 +11,18 @@ on:
         options:
           - q0f32
           - q4f32_1
+      language_pair:
+        description: "language pair"
+        required: true
+        default: "it-en"
+        type: string
+
 
 jobs:
   run-in-container:
     runs-on: ubuntu-latest
     container:
-      image: olyasir/models_build:ubuntu22.04_vulkan
+      image: ghcr.io/tetherto/models_build:ubuntu22.04_vulkan
 
     steps:
       - name: Check out repository
@@ -53,7 +59,7 @@ jobs:
 
     
       - name: Download model
-        run: git-lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
+        run: git-lfs install && git clone https://huggingface.co/Helsinki-NLP/opus-mt-${{ github.event.inputs.language_pair }}
 
       - name: Create build directory
         shell: bash
@@ -73,11 +79,11 @@ jobs:
 
       - name: Compile model
         run: |
-            ./ci/models_build/marian.sh "${{ github.event.inputs.quantization }}"
+            ./ci/models_build/marian.sh "${{ github.event.inputs.quantization }}" "${{ github.event.inputs.language_pair }}"
 
       - name: Upload compied model as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: output-${{ github.event.inputs.example_input }}-opus-mt-en-it
-          path: output-${{ github.event.inputs.example_input }}-opus-mt-en-it/
+          name: output-${{ github.event.inputs.example_input }}-opus-mt-${{ github.event.inputs.language_pair }}
+          path: output-${{ github.event.inputs.example_input }}-opus-mt-${{ github.event.inputs.language_pair }}/
             
