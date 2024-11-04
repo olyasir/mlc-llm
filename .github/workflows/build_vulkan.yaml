@@ -22,7 +22,7 @@ jobs:
   run-in-container:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/tetherto/models_build:ubuntu22.04_vulkan
+      image: ghcr.io/olyasir/models_build:ubuntu22.04_vulkan
 
     steps:
       - name: Check out repository
