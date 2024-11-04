@@ -14,7 +14,7 @@ on:
       language_pair:
         description: "language pair"
         required: true
-        default: "it-en"
+        default: "en-it"
         type: string
 
 
