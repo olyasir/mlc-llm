@@ -18,6 +18,8 @@ from mlc_llm.support.style import bold
 
 logger = logging.getLogger(__name__)
 
+MAX_VOCAB_SIZE = 100000
+
 """
 HuggingFace's implementation of MarianMT:https://github.com/huggingface/transformers/blob/main/src/transformers/models/marian/configuration_marian.py
 
@@ -26,7 +28,7 @@ HuggingFace's implementation of MarianMT:https://github.com/huggingface/transfor
 
 @dataclasses.dataclass
 class MarianConfig(ConfigBase):
-    vocab_size: int
+    vocab_size: int 
     encoder_layers: int
     encoder_attention_heads: int
     decoder_layers: int
@@ -44,6 +46,7 @@ class MarianConfig(ConfigBase):
     kwargs: Dict[str, Any] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        self.vocab_size = MAX_VOCAB_SIZE
         if self.d_model % self.decoder_attention_heads != 0:
             raise ValueError(
                 f"d_model must be divisible by decoder_attention_heads (got `d_model`: {self.d_model}"
@@ -389,7 +392,7 @@ class MarianEncoder(nn.Module):
         self.max_source_positions = config.max_position_embeddings
         self.embed_scale = math.sqrt(config.d_model) if config.scale_embedding else 1.0
 
-        self.embed_tokens = nn.Embedding(config.vocab_size, config.d_model)
+        self.embed_tokens = nn.Embedding(MAX_VOCAB_SIZE, config.d_model)
         self.embed_positions = MarianPositionalEmbedding(
             config.max_position_embeddings, config.d_model
         )
@@ -415,7 +418,7 @@ class MarianDecoder(nn.Module):
 
         self.max_target_positions = config.max_position_embeddings
         self.embed_scale = math.sqrt(config.d_model) if config.scale_embedding else 1.0
-        self.embed_tokens = nn.Embedding(config.vocab_size, config.d_model)
+        self.embed_tokens = nn.Embedding(MAX_VOCAB_SIZE, config.d_model)
         self.embed_positions = MarianPositionalEmbedding(
             config.max_position_embeddings, config.d_model
         )
@@ -486,8 +489,8 @@ class MarianMT(nn.Module):
     def __init__(self, config: MarianConfig):
         self.config = config
         self.model = MarianModel(config)
-        self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
-        self.final_logits_bias = nn.Parameter((1, config.vocab_size))
+        self.lm_head = nn.Linear(config.d_model, MAX_VOCAB_SIZE, bias=False)
+        self.final_logits_bias = nn.Parameter((1, MAX_VOCAB_SIZE))
         self.dtype = "float32"
 
     def forward(self, input_ids: Tensor, total_seq_len: Optional[tir.Var] = None) -> Tensor:
@@ -597,13 +600,5 @@ class MarianMT(nn.Module):
                     "effect_mode": "packed",
                 },
             },
-            # "softmax_with_temperature": {
-            #     "logits": nn.spec.Tensor([1, 1, "vocab_size"], "float32"),
-            #     "temperature": nn.spec.Tensor([], "float32"),
-            #     "$": {
-            #         "param_mode": "none",
-            #         "effect_mode": "none",
-            #     },
-            # },
         }
         return nn.spec.ModuleSpec.from_raw(mod_spec, self)
