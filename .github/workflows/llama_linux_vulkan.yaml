@@ -11,7 +11,7 @@ on:
         options:
           - q0f32
           - q4f32_1
-          - q4_f16_1
+          - q4f16_1
       model:
         description: "Choose llama model"
         required: true
