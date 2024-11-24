@@ -1,0 +1,144 @@
+name: Compile Llama linux vulkan
+
+on:
+  workflow_dispatch:
+    inputs:
+      quantization:
+        description: "Choose quantization for model"
+        required: true
+        default: "q0f32"
+        type: choice
+        options:
+          - q0f32
+          - q4f32_1
+          - q4_f16_1
+      model:
+        description: "Choose llama model"
+        required: true
+        default: "q0f32"
+        type: choice
+        options:
+          - TinyLlama-1.1B-Chat-v1.0
+          - Llama-3.1-8B-Instruct
+      gen_config_type:
+        description: "model type for coversation template. (--conv-template tinyllama_v1_0, llama-3_1). See available templates in gen_config.py"
+        required: true
+        default: "q0f32"
+        type: string
+    
+     
+jobs:
+
+  compile-llama-model:
+    runs-on: ai-run-linux
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      packages: write
+    container:
+      image: ghcr.io/tetherto/models_build:ubuntu22.04_vulkan_mlc
+      options: --privileged --rm
+  
+    steps:
+      - name: Install Node.js
+        run: |
+          apt-get update
+          apt-get install -y nodejs npm
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          # token: ${{ secrets.GITHUB_TOKEN }}
+          ref: base/v1
+          fetch-depth: 1  # Only fetch the latest commit
+      - name: Mark repository as safe
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          git config --global --add safe.directory /__w/mlc-llm/mlc-llm
+
+       # Step 2: Set up AWS CLI
+      - name: Install AWS CLI
+        run: |
+          apt-get update
+          apt-get install -y unzip
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+
+      # Step 3: Configure AWS CLI (Assuming you have AWS credentials set as secrets)
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set region us-east-1  # Specify your desired region
+
+      # Step 4: Download directory from S3
+      - name: Download directory from S3
+        run: |
+          aws s3 cp s3://qvac-models/${{ github.event.inputs.model }}/ ./${{ github.event.inputs.model }}/ --recursive
+          ls -l ./${{ github.event.inputs.model }}
+            
+      - name: Install Rust manually
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH  # Add Rust to the PATH for GitHub Actions
+
+      - name: Source Rust environment
+        shell: bash
+        run: source $HOME/.cargo/env && rustup --version && cargo --version
+
+      - name: Mark repository as safe
+        run: |
+          git config --global --add safe.directory /__w/mlc-llm/mlc-llm
+
+      - name: get submodules
+        run: |
+            git submodule update --init --recursive
+
+      - name: install tvm
+        run: |
+            cd /tvm/python
+            pip install -e .
+
+      - name: verify tvm installation
+        run: |
+            echo "Verifying tvm instalation "
+            python -c "import tvm; print(tvm.__file__)"
+
+      - name: Run a command in the container
+        run: |
+          echo "Verifying vulkan instalation "
+          python --version
+          vulkaninfo
+          cargo --version
+          pwd 
+          rustup --version
+
+      - name: Create build directory
+        shell: bash
+        run: |
+            mkdir build && cd build && cp ../cmake/config.cmake .
+            echo "set(USE_VULKAN ON)" >> config.cmake
+            echo "set(TVM_SOURCE_DIR /tvm)" >> config.cmake
+            cmake ..
+
+      - name: Build the project
+        shell: bash
+        run: |
+           source $HOME/.cargo/env && cd build && cmake --build . 
+
+      - name: cleanup 
+        run: rm -rf $HOME/.cargo $HOME/.rustup 3rdpary/tvm  /__t/CodeQL
+
+      - name: Install mlc-llm
+        run: |
+           cd python && pip install -e .
+
+      - name: Compile model
+        run: |
+          ./ci/models_build/llama.sh "${{ github.event.inputs.quantization }}" vulkan "${{ github.event.inputs.model }}" "${{ github.event.inputs.gen_config_type }}"
+
+      - name: Upload compied model as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: output-${{ github.event.inputs.model }}-${{ github.event.inputs.quantization }}
+          path: output-${{ github.event.inputs.model }}-${{ github.event.inputs.quantization }}
