@@ -47,7 +47,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
-          # token: ${{ secrets.GITHUB_TOKEN }}
           ref: base/v1
           fetch-depth: 1  # Only fetch the latest commit
       - name: Mark repository as safe
