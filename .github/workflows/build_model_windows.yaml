@@ -31,6 +31,7 @@ jobs:
     - name: Git config
       run: >-
         git config --system core.longpaths true
+    
     - uses: actions/checkout@v3
       with:
         submodules: 'recursive'
@@ -43,6 +44,18 @@ jobs:
         channel-priority: strict
         environment-file: ci/build-environment.yaml
         auto-activate-base: false
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      env:
+        # This ensures conda commands are available
+        CONDA_SCRIPT: C:\Miniconda\condabin\conda.bat
+      with:
+        # This will run when the SSH session starts
+        init-commands: |
+          call C:\Miniconda\condabin\conda.bat init
+          call C:\Users\runneradmin\AppData\Local\Conda\conda\conda\shell\condabin\conda-hook.bat
+          conda activate mlc-llm-build
     - name: Conda info
       run: |
         conda info
@@ -104,6 +117,8 @@ jobs:
         cmake ..
         cmake --build . --parallel 3 
         python -v -c "import ssl; print(ssl.__file__)"
+        
+    
 
     - name: install mlc-llm
       run: |
