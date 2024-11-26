@@ -72,9 +72,8 @@ jobs:
           python -v -c "import ssl; print(ssl.__file__)"
     - name: build tvm
       run: |
-        set "PATH=%PATH%;D:\a\msys64\mingw64\bin;D:\a\msys64\mingw64\include;D:\a\msys64\mingw64"
-        set ZLIB_LIBRARY=D:\a\msys64\mingw64\bin\zlib1.dll
-        python -v -c "import ssl; print(ssl.__file__)"
+        set "PATH=%PATH%;C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin;C:\Miniconda\envs\mlc-llm-build\Library\mingw64\include;C:\Miniconda\envs\mlc-llm-build\Library\mingw64"
+        set ZLIB_LIBRARY=C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin\zlib1.dll
         cd ..
         git clone -b mlc --recursive https://github.com/mlc-ai/relax.git tvm
         cd tvm
@@ -82,7 +81,7 @@ jobs:
         mkdir build
         cd build
         cp ../cmake/config.cmake .
-        echo set(CMAKE_BUILD_TYPE Debug) >> config.cmake
+        echo set(CMAKE_BUILD_TYPE Release) >> config.cmake
         echo set(USE_LLVM "llvm-config --ignore-libllvm") >> config.cmake
         echo set(HIDE_PRIVATE_SYMBOLS ON) >> config.cmake
         echo set(USE_VULKAN ON) >> config.cmake
@@ -105,28 +104,24 @@ jobs:
         cmake ..
         cmake --build . --parallel 3 
         python -v -c "import ssl; print(ssl.__file__)"
-        
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
 
     - name: install mlc-llm
       run: |
-        set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug"
+        set "PATH=%PATH%;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug"
         cd python
         pip install -e .
         python -v -c "import ssl; print(ssl.__file__)"
-        python -v -c "import os; print(os.environ.get('PATH')); import mlc_llm; print(mlc_llm.__file__)"
     - name: download the model
       run: |
         git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
+    
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Compile model
       run: |
-        python -v -c "import ssl; print(ssl.__file__)"
-        python -v -c "import mlc_llm; print(mlc_llm.__file__)"
-        #set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug;"
-        python -m mlc_llm convert_weight --model-type marian ./opus-mt-en-it --quantization q0f32 --output ./output
-        #ci/models_build/marian.bat "${{ github.event.inputs.quantization }}" "${{ github.event.inputs.language_pair }}"
+        set "PATH=C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin;%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug;"
+        ci/models_build/marian.bat "${{ github.event.inputs.quantization }}" "${{ github.event.inputs.language_pair }}"
     
     - name: Upload compied model as artifact
       uses: actions/upload-artifact@v3
