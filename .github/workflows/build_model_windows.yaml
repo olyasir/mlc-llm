@@ -47,10 +47,12 @@ jobs:
         python -m venv mlc_build_env
         call .\mlc_build_env\Scripts\activate
         python --version
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: install dependencies
       run: |
-        curl -o VulkanSDK-1.3.296.0.exe https://sdk.lunarg.com/sdk/download/1.3.296.0/windows/VulkanSDK-1.3.296.0-Installer.exe
-        ./VulkanSDK-1.3.231.0.exe /S
+        curl -o VulkanSDK.exe https://sdk.lunarg.com/sdk/download/1.3.296.0/windows/VulkanSDK-1.3.296.0-Installer.exe
+        VulkanSDK.exe /S
         vulkaninfo
         choco install cmake
     - name: Install Visual Studio Build Tools 2022
