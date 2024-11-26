@@ -37,24 +37,34 @@ jobs:
     - name: Install LLVM
       run: >-
         cmd /C call ci\models_build\install_llvm.bat
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: conda-incubator/setup-miniconda@v2
       with:
-        python-version: '3.11'
-
-    - name: create venv
+        activate-environment: mlc-llm-build
+        channel-priority: strict
+        environment-file: ci/build-environment.yaml
+        auto-activate-base: false
+    - name: Conda info
       run: |
-        python -m venv mlc_build_env
-        call .\mlc_build_env\Scripts\activate
+        conda info
+        conda list
+        #conda install zlib 
         python --version
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-    - name: install dependencies
+
+    - name: install ssl
       run: |
-        curl -o VulkanSDK.exe https://sdk.lunarg.com/sdk/download/1.3.296.0/windows/VulkanSDK-1.3.296.0-Installer.exe
-        VulkanSDK.exe /S
-        vulkaninfo
-        choco install cmake
+        # Ensure MinGW64's OpenSSL is in the PATH
+        set "PATH=C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin;%PATH%"
+        dir C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin
+        where libcrypto-1-x64.dll
+        where libssl-1-x64.dll
+        python -v -c "import ssl; print(ssl.__file__)"
+    - name: check ssl
+      run: |
+        # Verify OpenSSL installation from MinGW
+        where libcrypto-1-x64.dll
+        where libssl-1-x64.dll
+        python -v -c "import ssl; print(ssl.__file__)"
+
     - name: Install Visual Studio Build Tools 2022
       run: |
           choco install visualstudio2022buildtools --version=17.11.9
@@ -62,7 +72,6 @@ jobs:
           python -v -c "import ssl; print(ssl.__file__)"
     - name: build tvm
       run: |
-        call .\mlc_build_env\Scripts\activate
         set "PATH=%PATH%;D:\a\msys64\mingw64\bin;D:\a\msys64\mingw64\include;D:\a\msys64\mingw64"
         set ZLIB_LIBRARY=D:\a\msys64\mingw64\bin\zlib1.dll
         python -v -c "import ssl; print(ssl.__file__)"
@@ -87,7 +96,6 @@ jobs:
         python -v -c "import ssl; print(ssl.__file__)"
     - name: Build MLC-LLM
       run: |
-        call .\mlc_build_env\Scripts\activate
         mkdir build
         cd build 
         cp ../cmake/config.cmake .
@@ -98,10 +106,11 @@ jobs:
         cmake --build . --parallel 3 
         python -v -c "import ssl; print(ssl.__file__)"
         
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: install mlc-llm
       run: |
-        call .\mlc_build_env\Scripts\activate
         set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug"
         cd python
         pip install -e .
@@ -113,7 +122,6 @@ jobs:
 
     - name: Compile model
       run: |
-        call .\mlc_build_env\Scripts\activate
         python -v -c "import ssl; print(ssl.__file__)"
         python -v -c "import mlc_llm; print(mlc_llm.__file__)"
         #set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug;"
@@ -126,4 +134,3 @@ jobs:
           name: output-${{ github.event.inputs.quantization }}-opus-mt-${{ github.event.inputs.language_pair }}
           path: output-${{ github.event.inputs.quantization }}-opus-mt-${{ github.event.inputs.language_pair }}/
             
-
