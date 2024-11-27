@@ -43,10 +43,6 @@ jobs:
     - name: create venv
       run: |
         python -m venv mlc_venv
-    - name: Install Visual Studio Build Tools 2022
-      run: |
-          choco install visualstudio2022buildtools --version=17.11.9
-          refreshenv
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
 
