@@ -23,13 +23,10 @@ on:
 jobs:
   Build-Marian-Windows:
     runs-on: windows-latest
-    defaults:
-      run:
-        shell: 'cmd /C call {0}'
-
+    
     steps:
     - name: Git config
-      run: >-
+      run: |
         git config --system core.longpaths true
     - uses: actions/checkout@v3
       with:
@@ -37,24 +34,25 @@ jobs:
     - name: Install LLVM
       run: >-
         cmd /C call ci\models_build\install_llvm.bat
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        activate-environment: mlc-llm-build
-        channel-priority: strict
-        environment-file: ci/build-environment.yaml
-        auto-activate-base: false
-    - name: Conda info
+    - name: install vulkan
       run: |
-        conda info
-        conda list
-        conda install zlib
-        python --version
+         $ProgressPreference = 'SilentlyContinue'
+         Invoke-WebRequest https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.exe -OutFile vulkan-sdk.exe -PassThru
+         ./vulkan-sdk.exe --root C:\VulkanSDK --accept-licenses --default-answer --confirm-command install
+         echo "VULKAN_SDK=C:\VulkanSDK" >> $Env:GITHUB_ENV
+    - name: create venv
+      run: |
+        python -m venv mlc_venv
     - name: Install Visual Studio Build Tools 2022
       run: |
           choco install visualstudio2022buildtools --version=17.11.9
           refreshenv
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
     - name: build tvm
       run: |
+        ./mlc_venv/Scripts/activate
         set "PATH=%PATH%;D:\a\msys64\mingw64\bin;D:\a\msys64\mingw64\include;D:\a\msys64\mingw64"
         set ZLIB_LIBRARY=D:\a\msys64\mingw64\bin\zlib1.dll
         cd ..
@@ -77,6 +75,7 @@ jobs:
         python -c "import tvm; print(tvm.__file__)"
     - name: Build MLC-LLM
       run: |
+        mlc_venv\Scripts\activate
         mkdir build
         cd build 
         cp ../cmake/config.cmake .
