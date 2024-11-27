@@ -73,7 +73,7 @@ jobs:
       # Step 4: Download directory from S3
       - name: Download directory from S3
         run: |
-          aws s3 cp s3://qvac-models/${{ github.event.inputs.model }}/ ./${{ github.event.inputs.model }}/ --recursive
+          aws s3 cp s3://tether-ai-dev/qvac_models_raw/${{ github.event.inputs.model }}/ ./${{ github.event.inputs.model }}/ --recursive
           ls -l ./${{ github.event.inputs.model }}
             
       - name: Install Rust manually
