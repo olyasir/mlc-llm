@@ -43,40 +43,42 @@ jobs:
     - name: create venv
       run: |
         python -m venv mlc_venv
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+    
 
     - name: build tvm
       run: |
-        ./mlc_venv/Scripts/activate
-        set "PATH=%PATH%;D:\a\msys64\mingw64\bin;D:\a\msys64\mingw64\include;D:\a\msys64\mingw64"
-        set ZLIB_LIBRARY=D:\a\msys64\mingw64\bin\zlib1.dll
-        cd ..
-        git clone -b mlc --recursive https://github.com/mlc-ai/relax.git tvm
-        cd tvm
-        git reset --hard 176d01e61276b0e94910fd904363ef4cd91fb8b5
-        mkdir build
-        cd build
-        cp ../cmake/config.cmake .
-        echo set(CMAKE_BUILD_TYPE Release) >> config.cmake
-        echo set(USE_LLVM "llvm-config --ignore-libllvm") >> config.cmake
-        echo set(HIDE_PRIVATE_SYMBOLS ON) >> config.cmake
-        echo set(USE_VULKAN ON) >> config.cmake
-        cmake -G "Visual Studio 17 2022" -A x64 ..
-        cmake --build . --target tvm_runtime
-        cd ..
-        cd python
-        set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug"
-        pip install -e .
+        source ./mlc_venv/Scripts/activate
+        
+        python -m pip install --pre -U -f https://mlc.ai/wheels mlc-ai-nightly
+        # 
+        # set "PATH=%PATH%;D:\a\msys64\mingw64\bin;D:\a\msys64\mingw64\include;D:\a\msys64\mingw64"
+        # set ZLIB_LIBRARY=D:\a\msys64\mingw64\bin\zlib1.dll
+        # cd ..
+        # git clone -b mlc --recursive https://github.com/mlc-ai/relax.git tvm
+        # cd tvm
+        # git reset --hard 176d01e61276b0e94910fd904363ef4cd91fb8b5
+        # mkdir build
+        # cd build
+        # cp ../cmake/config.cmake .
+        # echo set(CMAKE_BUILD_TYPE Release) >> config.cmake
+        # echo set(USE_LLVM "llvm-config --ignore-libllvm") >> config.cmake
+        # echo set(HIDE_PRIVATE_SYMBOLS ON) >> config.cmake
+        # echo set(USE_VULKAN ON) >> config.cmake
+        # cmake -G "Visual Studio 17 2022" -A x64 ..
+        # cmake --build . --target tvm_runtime
+        # cd ..
+        # cd python
+        # set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug"
+        # pip install -e .
         python -c "import tvm; print(tvm.__file__)"
     - name: Build MLC-LLM
       run: |
-        mlc_venv\Scripts\activate
+        source ./mlc_venv/Scripts/activate
         mkdir build
         cd build 
         cp ../cmake/config.cmake .
         echo set(USE_VULKAN ON) >>config.cmake
-        echo set(TVM_SOURCE_DIR, $GITHUB_WORKSPACE/../tvm) >> config.cmake
+        #echo set(TVM_SOURCE_DIR, $GITHUB_WORKSPACE/../tvm) >> config.cmake
         type config.cmake
         cmake ..
         cmake --build . --parallel 3 
@@ -89,6 +91,8 @@ jobs:
     - name: download the model
       run: |
         git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: Compile model
       run: |
             set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug;"
