@@ -47,7 +47,7 @@ jobs:
 
     - name: build tvm
       run: |
-        source ./mlc_venv/Scripts/activate
+        .\mlc_venv\Scripts\activate
         
         python -m pip install --pre -U -f https://mlc.ai/wheels mlc-ai-nightly
         # 
