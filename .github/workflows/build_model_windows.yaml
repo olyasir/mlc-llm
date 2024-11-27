@@ -31,7 +31,6 @@ jobs:
     - name: Git config
       run: >-
         git config --system core.longpaths true
-    
     - uses: actions/checkout@v3
       with:
         submodules: 'recursive'
@@ -44,49 +43,20 @@ jobs:
         channel-priority: strict
         environment-file: ci/build-environment.yaml
         auto-activate-base: false
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      env:
-        # This ensures conda commands are available
-        CONDA_SCRIPT: C:\Miniconda\condabin\conda.bat
-      with:
-        # This will run when the SSH session starts
-        init-commands: |
-          call C:\Miniconda\condabin\conda.bat init
-          call C:\Users\runneradmin\AppData\Local\Conda\conda\conda\shell\condabin\conda-hook.bat
-          conda activate mlc-llm-build
     - name: Conda info
       run: |
         conda info
         conda list
-        #conda install zlib 
+        conda install zlib
         python --version
-
-    - name: install ssl
-      run: |
-        # Ensure MinGW64's OpenSSL is in the PATH
-        set "PATH=C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin;%PATH%"
-        dir C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin
-        where libcrypto-1-x64.dll
-        where libssl-1-x64.dll
-        python -v -c "import ssl; print(ssl.__file__)"
-    - name: check ssl
-      run: |
-        # Verify OpenSSL installation from MinGW
-        where libcrypto-1-x64.dll
-        where libssl-1-x64.dll
-        python -v -c "import ssl; print(ssl.__file__)"
-
     - name: Install Visual Studio Build Tools 2022
       run: |
           choco install visualstudio2022buildtools --version=17.11.9
           refreshenv
-          python -v -c "import ssl; print(ssl.__file__)"
     - name: build tvm
       run: |
-        set "PATH=%PATH%;C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin;C:\Miniconda\envs\mlc-llm-build\Library\mingw64\include;C:\Miniconda\envs\mlc-llm-build\Library\mingw64"
-        set ZLIB_LIBRARY=C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin\zlib1.dll
+        set "PATH=%PATH%;D:\a\msys64\mingw64\bin;D:\a\msys64\mingw64\include;D:\a\msys64\mingw64"
+        set ZLIB_LIBRARY=D:\a\msys64\mingw64\bin\zlib1.dll
         cd ..
         git clone -b mlc --recursive https://github.com/mlc-ai/relax.git tvm
         cd tvm
@@ -105,7 +75,6 @@ jobs:
         set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug"
         pip install -e .
         python -c "import tvm; print(tvm.__file__)"
-        python -v -c "import ssl; print(ssl.__file__)"
     - name: Build MLC-LLM
       run: |
         mkdir build
@@ -116,27 +85,19 @@ jobs:
         type config.cmake
         cmake ..
         cmake --build . --parallel 3 
-        python -v -c "import ssl; print(ssl.__file__)"
-        
-    
 
     - name: install mlc-llm
       run: |
         set "PATH=%PATH%;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug"
         cd python
         pip install -e .
-        python -v -c "import ssl; print(ssl.__file__)"
     - name: download the model
       run: |
         git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-it
-    
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
     - name: Compile model
       run: |
-        set "PATH=C:\Miniconda\envs\mlc-llm-build\Library\mingw64\bin;%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug;"
-        ci/models_build/marian.bat "${{ github.event.inputs.quantization }}" "${{ github.event.inputs.language_pair }}"
+            set "PATH=%PATH%;D:\a\mlc-llm\tvm\build\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\sentencepiece\src\Debug;D:\a\mlc-llm\mlc-llm\build\tokenizers\Debug;D:\a\mlc-llm\mlc-llm\build\Debug;"
+            ci/models_build/marian.bat "${{ github.event.inputs.quantization }}" "${{ github.event.inputs.language_pair }}"
     
     - name: Upload compied model as artifact
       uses: actions/upload-artifact@v3
